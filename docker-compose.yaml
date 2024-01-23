@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  fastapi:
+    build: .
+    container_name: fastapi
+    env_file: app/.env
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app
+    ports:
+      - "8080:8000"
+
+
+  db:
+    image: postgres:14.5
+    container_name: db
+    environment:
+      POSTGRES_DB: "leetcode_helper"
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "root"
+    ports:
+      - "5555:5432"
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d/

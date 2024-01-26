@@ -5,7 +5,12 @@ from fastapi import FastAPI
 
 from core.models import Base, db_helper
 
-from api_v1.users.views import router as apiv1_users_router
+from api_v1.users.views import (
+    auth_router,
+    register_router,
+    reset_password_router,
+    users_router,
+)
 
 
 @asynccontextmanager
@@ -21,7 +26,19 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.include_router(apiv1_users_router)
+# set requires_verification to True to allow only verified users to login
+app.include_router(
+    auth_router,
+    prefix="/auth",
+    tags=["auth"],
+)
+app.include_router(
+    register_router,
+    prefix="/register",
+    tags=["auth"],
+)
+app.include_router(reset_password_router, prefix="/reset_password", tags=["auth"])
+app.include_router(users_router, prefix="/users", tags=["auth"])
 
 
 @app.get("/")

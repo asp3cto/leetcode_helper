@@ -1,11 +1,17 @@
 """Module with pydantic schemas for views.py"""
 
-from typing import Annotated
-from annotated_types import MinLen, MaxLen
-from pydantic import BaseModel
+import uuid
+
+from fastapi_users import schemas
 
 
-class CreateUser(BaseModel):
-    """Model for user creation"""
+class UserRead(schemas.BaseUser[int]):
+    pass
 
-    username: Annotated[str, MinLen(6), MaxLen(15)]
+
+class UserCreate(schemas.BaseUserCreate):
+    pass
+
+
+class UserUpdate(schemas.BaseUserUpdate):
+    pass

@@ -1,22 +1,20 @@
 """Endpoints for user"""
 
-from fastapi import APIRouter
+import uuid
 
-from api_v1.users import crud
-from api_v1.users.schemas import CreateUser
+from fastapi_users import FastAPIUsers
 
+from .schemas import UserCreate, UserRead, UserUpdate
 
-router = APIRouter(prefix="/users", tags=["Users"])
+from core import auth_backend, get_user_manager
+from core.models import User
 
+fastapi_users = FastAPIUsers[User, uuid.UUID](
+    get_user_manager,
+    [auth_backend],
+)
 
-@router.post("/")
-def create_user(user: CreateUser):
-    """Endpoint for user creation
-
-    Args:
-        user (CreateUser): user object for creation
-
-    Returns:
-        dict: status code and user fields as dict
-    """
-    return crud.create_user(user_in=user)
+auth_router = fastapi_users.get_auth_router(auth_backend)
+register_router = fastapi_users.get_register_router(UserRead, UserCreate)
+reset_password_router = fastapi_users.get_reset_password_router()
+users_router = fastapi_users.get_users_router(UserRead, UserUpdate)

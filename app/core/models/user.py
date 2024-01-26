@@ -1,13 +1,22 @@
 """User model for ORM"""
 
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String
+from typing import AsyncGenerator
+from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models.base import Base
+from .base import Base
+from .helper import db_helper
 
 
-class User(Base):
-    """User Model implementation"""
+class User(Base, SQLAlchemyBaseUserTable[int]):
+    pass
 
-    username: Mapped[str] = mapped_column(String(15))
-    hashed_password: Mapped[str] = mapped_column(String(1024))
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with db_helper.session_factory() as session:
+        yield session
+
+
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     db_url: str = "postgresql+asyncpg://root:root@db/leetcode_helper"
     db_echo: bool = False
+    jwt_secret: str = "Den Pidoras"
 
 
 settings: Settings = Settings()

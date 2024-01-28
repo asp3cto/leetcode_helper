@@ -1,22 +1,29 @@
 version: "3.9"
 services:
-  db:
+  postgres:
     image: postgres:14.5
-    container_name: db
+    container_name: postgres
     environment:
       POSTGRES_DB: "leetcode_helper"
-      POSTGRES_USER: "root"
-      POSTGRES_PASSWORD: "root"
+      POSTGRES_USER: "leetcode_helper"
+      POSTGRES_PASSWORD: "qwerty"
     ports:
       - "5555:5432"
     volumes:
       - ./postgres:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d leetcode_helper -U leetcode_helper"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   fastapi:
     build: .
-    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn --reload app:app --host 0.0.0.0 --port 8000'
+    # command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn --reload app:app --host 0.0.0.0 --port 8000'
     container_name: fastapi
     depends_on:
-      - db
+      postgres:
+        condition: service_healthy
     volumes:
       - ./app:/app
     ports:

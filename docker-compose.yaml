@@ -1,17 +1,5 @@
 version: "3.9"
 services:
-  fastapi:
-    build: .
-    container_name: fastapi
-    env_file: app/.env
-    depends_on:
-      - db
-    volumes:
-      - ./app:/app
-    ports:
-      - "8080:8000"
-
-
   db:
     image: postgres:14.5
     container_name: db
@@ -23,3 +11,13 @@ services:
       - "5555:5432"
     volumes:
       - ./postgres:/docker-entrypoint-initdb.d/
+  fastapi:
+    build: .
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn --reload app:app --host 0.0.0.0 --port 8000'
+    container_name: fastapi
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app
+    ports:
+      - "8080:8000"

@@ -14,4 +14,4 @@ COPY ./app ./app
 WORKDIR /app
 
 #CMD ["python", "./tests/start_tests.py"]
-# ENTRYPOINT ["uvicorn", "--reload", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uvicorn", "--reload", "app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -12,5 +12,5 @@ class User(Base):
     """User model for db"""
     username: Mapped[str] = mapped_column(String(30))
     email: Mapped[Optional[str]]
-    is_active: Mapped[bool] = mapped_column(server_default=sql.false())
+    is_active: Mapped[bool] = mapped_column(server_default=sql.true())
     hashed_password: Mapped[bytes] = mapped_column(LargeBinary())

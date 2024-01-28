@@ -11,7 +11,7 @@ from core.models import Base
 class User(Base):
     """User model for db"""
 
-    username: Mapped[str] = mapped_column(String(30))
+    username: Mapped[str] = mapped_column(String(30), unique=True)
     email: Mapped[Optional[str]]
     is_active: Mapped[bool] = mapped_column(server_default=sql.true())
     hashed_password: Mapped[bytes] = mapped_column(LargeBinary())

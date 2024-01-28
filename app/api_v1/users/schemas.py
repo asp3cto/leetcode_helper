@@ -11,7 +11,7 @@ class UserBase(BaseModel):
     email: EmailStr | None
 
 
-class UserCreate(UserBase):
+class UserIn(UserBase):
     """Model for creating a user"""
 
     password: Annotated[str, MinLen(6)]

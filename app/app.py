@@ -3,6 +3,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
+from core.models.user import User
+
 from core.models import Base, db_helper
 
 

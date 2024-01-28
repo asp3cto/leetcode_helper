@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import (
 from core.config import settings
 
 
-class DatabaseHelper:
+class PgDatabaseHelper:
     """Class with utils to work with database"""
 
     def __init__(self, url: str, echo: bool = False):
@@ -42,4 +42,4 @@ class DatabaseHelper:
         await session.close()
 
 
-db_helper = DatabaseHelper(url=settings.db_url, echo=settings.db_echo)
+pg_db_helper = PgDatabaseHelper(url=settings.pg.db_url, echo=settings.pg.db_echo)

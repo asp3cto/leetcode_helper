@@ -3,7 +3,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from core.models import Base, db_helper
+from core.models import Base, pg_db_helper
 from api_v1.users import users_router
 
 
@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     Args:
         app (FastAPI): main app
     """
-    async with db_helper.engine.begin() as conn:
+    async with pg_db_helper.engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
 

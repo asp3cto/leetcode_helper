@@ -24,7 +24,6 @@ from auth import OAuth2PasswordBearerWithCookie
 
 
 router = APIRouter(
-    prefix="/users",
     tags=["Users"],
 )
 
@@ -128,13 +127,10 @@ async def logout_user(
 ):
     if not access_token:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User isnt logged in"
+            status_code=status.HTTP_403_FORBIDDEN, detail="User isnt logged in"
         )
     response.delete_cookie("access_token")
-    return {
-        "detail": "Logged out"
-    }
+    return {"detail": "Logged out"}
 
 
 def get_current_token_payload(

@@ -1,5 +1,7 @@
 """Working with .env"""
 
+# NOTE: add all settings to .env
+
 from pathlib import Path
 
 from pydantic import BaseModel

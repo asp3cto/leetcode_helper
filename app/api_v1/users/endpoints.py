@@ -1,20 +1,34 @@
 """Endpoints in users router"""
 
-from fastapi import APIRouter, Depends, status, HTTPException, Form
+from typing import Annotated
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    status,
+    HTTPException,
+    Response,
+    Cookie,
+)
+from fastapi.security import OAuth2PasswordRequestForm
+from jwt import InvalidTokenError
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import pg_db_helper
-from api_v1.users.schemas import UserIn, UserOut
 from core.models import User
-from auth import hash_password, validate_password
+from core.models import pg_db_helper
+from api_v1.users.schemas import UserIn, UserOut, TokenInfo
+from auth import hash_password, validate_password, encode_jwt, decode_jwt
+from auth import OAuth2PasswordBearerWithCookie
 
 
 router = APIRouter(
     prefix="/users",
     tags=["Users"],
 )
+
+oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/users/login/")
 
 
 @router.post(
@@ -23,15 +37,22 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
 )
 async def register_user(
+    response: Response,
     user: UserIn,
     session: AsyncSession = Depends(pg_db_helper.get_scoped_session),
+    access_token: Annotated[str | None, Cookie()] = None,
 ) -> UserOut:
+    # removing access_token cookie
+    if access_token:
+        response.delete_cookie("access_token")
+    headers = {"set-cookie": response.headers["set-cookie"]}
     # check if user already in db
     statement = select(User).where(User.username == user.username)
     answer_from_db = await session.execute(statement=statement)
     if answer_from_db.first():
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="User already exists"
+            status_code=status.HTTP_403_FORBIDDEN, detail="User already exists",
+            headers=headers,
         )
 
     hashed_password: bytes = hash_password(user.password)
@@ -45,27 +66,101 @@ async def register_user(
     return UserOut(username=user.username, email=user.email)
 
 
-@router.post(
-    "/login/",
-    status_code=status.HTTP_302_FOUND,
-)
-async def login_user(
-    username: str = Form(),
-    password: str = Form(),
+async def validate_auth_user_password(
+    form_data: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(pg_db_helper.get_scoped_session),
-) -> dict:
+):
+    """Helper Function for login route to check a user by password"""
     invalid_login_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid username or password",
     )
-
-    statement = select(User.hashed_password).where(User.username == username)
+    statement = select(User).where(User.username == form_data.username)
     answer_from_db = (await session.execute(statement=statement)).first()
 
+    # if no user was found by username in db
     if not answer_from_db:
         raise invalid_login_exception
 
-    hash_from_db: bytes = answer_from_db[0]
-    if validate_password(password, hash_from_db):
-        return {"detail": "Authorized"}
-    raise invalid_login_exception
+    user_from_db: User = answer_from_db[0]
+    hash_from_db: bytes = user_from_db.hashed_password
+
+    # if passwords dont match
+    if not validate_password(form_data.password, hash_from_db):
+        raise invalid_login_exception
+
+    if not user_from_db.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="User is not active"
+        )
+
+    return user_from_db
+
+
+@router.post("/login/", status_code=status.HTTP_200_OK, response_model=TokenInfo)
+async def login_user(
+    response: Response, user: User = Depends(validate_auth_user_password)
+) -> TokenInfo:
+    # create token and put it to cookie
+    access_token = encode_jwt(
+        payload={"sub": user.id},
+    )
+    response.set_cookie(
+        key="access_token", value=f"Bearer {access_token}", httponly=True
+    )
+    return TokenInfo(access_token=access_token, token_type="Bearer")
+
+
+def get_current_token_payload(
+    token: str = Depends(oauth2_scheme),
+) -> dict:
+    try:
+        payload = decode_jwt(
+            token=token,
+        )
+    except InvalidTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            # REMOVE EXCEPTION IN PROD
+            detail=f"invalid token error: {e}",
+        )
+    return payload
+
+
+async def get_current_auth_user(
+    payload: dict = Depends(get_current_token_payload),
+    session: AsyncSession = Depends(pg_db_helper.get_scoped_session),
+) -> User:
+    id: int | None = payload.get("sub")
+
+    # check user in db
+    statement = select(User).where(User.id == id)
+    answer_from_db = (await session.execute(statement=statement)).first()
+
+    # if no user was found by username in db
+    if not answer_from_db:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="token invalid (user not found)",
+        )
+
+    user_from_db = answer_from_db[0]
+    if user_from_db.is_active:
+        return user_from_db
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="user inactive",
+    )
+
+
+@router.get("/me/")
+def auth_user_check_self_info(
+    payload: dict = Depends(get_current_token_payload),
+    user: User = Depends(get_current_auth_user),
+):
+    iat = payload.get("iat")
+    return {
+        "username": user.username,
+        "email": user.email,
+        "logged_in_at": iat,
+    }

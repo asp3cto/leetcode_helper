@@ -34,7 +34,7 @@ def encode_jwt(
 
 def decode_jwt(
     token: str | bytes,
-    public_key: str = settings.jwt.public_key_path.read(),
+    public_key: str = settings.jwt.public_key_path.read_text(),
     algorithm: str = settings.jwt.algorithm,
 ):
     decoded = jwt.decode(token, public_key, algorithms=[algorithm])

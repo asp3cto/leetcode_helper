@@ -18,3 +18,8 @@ class UserIn(UserBase):
 
 
 class UserOut(UserBase): ...
+
+
+class TokenInfo(BaseModel):
+    access_token: str
+    token_type: str

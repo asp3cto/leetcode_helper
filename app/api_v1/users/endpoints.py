@@ -43,15 +43,17 @@ async def register_user(
     access_token: Annotated[str | None, Cookie()] = None,
 ) -> UserOut:
     # removing access_token cookie
+    headers = {}
     if access_token:
         response.delete_cookie("access_token")
-    headers = {"set-cookie": response.headers["set-cookie"]}
+        headers = {"set-cookie": response.headers["set-cookie"]}
     # check if user already in db
     statement = select(User).where(User.username == user.username)
     answer_from_db = await session.execute(statement=statement)
     if answer_from_db.first():
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="User already exists",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User already exists",
             headers=headers,
         )
 
@@ -99,16 +101,40 @@ async def validate_auth_user_password(
 
 @router.post("/login/", status_code=status.HTTP_200_OK, response_model=TokenInfo)
 async def login_user(
-    response: Response, user: User = Depends(validate_auth_user_password)
+    response: Response,
+    user: User = Depends(validate_auth_user_password),
+    access_token: Annotated[str | None, Cookie()] = None,
 ) -> TokenInfo:
+    # if we got to this route while already logged in
+    if access_token:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User already authorized",
+        )
     # create token and put it to cookie
-    access_token = encode_jwt(
+    access_token_value = encode_jwt(
         payload={"sub": user.id},
     )
     response.set_cookie(
-        key="access_token", value=f"Bearer {access_token}", httponly=True
+        key="access_token", value=f"Bearer {access_token_value}", httponly=True
     )
-    return TokenInfo(access_token=access_token, token_type="Bearer")
+    return TokenInfo(access_token=access_token_value, token_type="Bearer")
+
+
+@router.post("/logout/")
+async def logout_user(
+    response: Response,
+    access_token: Annotated[str | None, Cookie()] = None,
+):
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User isnt logged in"
+        )
+    response.delete_cookie("access_token")
+    return {
+        "detail": "Logged out"
+    }
 
 
 def get_current_token_payload(

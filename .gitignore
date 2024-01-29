@@ -161,3 +161,4 @@ cython_debug/
 userdata.yaml
 logfile
 *.pem
+venv*

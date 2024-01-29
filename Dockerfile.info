@@ -5,9 +5,9 @@ RUN mkdir info_server
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-COPY ./requirements.txt ./
+COPY ./requirements.info.txt ./
 
-RUN pip3 install --no-cache-dir -r ./requirements.txt;
+RUN pip3 install --no-cache-dir -r ./requirements.info.txt;
 
 COPY ./info_server ./info_server
 

@@ -147,7 +147,7 @@ def get_current_token_payload(
     except InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            # REMOVE EXCEPTION IN PROD
+            # NOTE: REMOVE EXCEPTION IN PROD
             detail=f"invalid token error: {e}",
         )
     return payload
@@ -167,6 +167,7 @@ async def get_current_auth_user(
     if not answer_from_db:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
+            # NOTE: REMOVE ADDITIONAL INFO IN PROD
             detail="token invalid (user not found)",
         )
 

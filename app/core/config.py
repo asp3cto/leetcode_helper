@@ -29,5 +29,5 @@ class Settings(BaseSettings):
 
 
 settings: Settings = Settings()
-# DISABLE IN PROD
+# NOTE: DISABLE IN PROD
 settings.pg.db_echo = True

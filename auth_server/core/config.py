@@ -17,7 +17,7 @@ class JWTSettings(BaseModel):
 
 
 class PostgresSettings(BaseModel):
-    db_url: str = "postgresql+asyncpg://leetcode_helper:qwerty@postgres/leetcode_helper"
+    db_url: str = "postgresql+asyncpg://auth:qwerty@postgres/auth"
     db_echo: bool = False
 
 

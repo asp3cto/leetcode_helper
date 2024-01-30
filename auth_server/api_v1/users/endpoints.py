@@ -27,7 +27,11 @@ router = APIRouter(
     tags=["Users"],
 )
 
-oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/users/login/")
+oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/login/")
+
+@router.get("/")
+def home():
+    return {"detail": "home"}
 
 
 @router.post(
@@ -104,12 +108,6 @@ async def login_user(
     user: User = Depends(validate_auth_user_password),
     access_token: Annotated[str | None, Cookie()] = None,
 ) -> TokenInfo:
-    # if we got to this route while already logged in
-    if access_token:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User already authorized",
-        )
     # create token and put it to cookie
     access_token_value = encode_jwt(
         payload={"sub": user.id},
@@ -178,6 +176,19 @@ async def get_current_auth_user(
 
 @router.get("/me/")
 def auth_user_check_self_info(
+    payload: dict = Depends(get_current_token_payload),
+    user: User = Depends(get_current_auth_user),
+):
+    iat = payload.get("iat")
+    return {
+        "username": user.username,
+        "email": user.email,
+        "logged_in_at": iat,
+    }
+
+
+@router.get("/validate/")
+def validate_token(
     payload: dict = Depends(get_current_token_payload),
     user: User = Depends(get_current_auth_user),
 ):

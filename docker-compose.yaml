@@ -26,11 +26,15 @@ services:
       - auth_server
     volumes:
       - ./info_server:/info_server
-    ports:
-      - "8080:8000"
+    # ports:
+    #   - "8080:8000"
     networks:
       - backend-services
-  
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.info_server.rule=PathPrefix(`/info`)"
+      - "traefik.http.services.info_server.loadbalancer.server.port=8000" 
+
   auth_server:
     build:
       context: .
@@ -41,8 +45,30 @@ services:
         condition: service_healthy
     volumes:
       - ./auth_server:/auth_server
+    # ports:
+    #   - "8081:8000"
+    networks:
+      - auth-services
+      - backend-services
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth_server.rule=PathPrefix(`/auth`)"
+      - "traefik.http.services.auth_server.loadbalancer.server.port=8000" 
+  
+  traefik:
+    image: "traefik:latest"
+    container_name: traefik
+    command:
+    # NOTE: DISABLE IN PROD
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
     ports:
-      - "8081:8000"
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - auth-services
       - backend-services

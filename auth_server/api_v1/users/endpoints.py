@@ -29,6 +29,7 @@ router = APIRouter(
 
 oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/login/")
 
+
 @router.get("/")
 def home():
     return {"detail": "home"}
@@ -113,7 +114,10 @@ async def login_user(
         payload={"sub": user.id},
     )
     response.set_cookie(
-        key="access_token", value=f"Bearer {access_token_value}", httponly=True
+        key="access_token",
+        value=f"Bearer {access_token_value}",
+        httponly=True,
+        samesite="lax",
     )
     return TokenInfo(access_token=access_token_value, token_type="Bearer")
 

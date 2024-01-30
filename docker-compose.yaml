@@ -15,8 +15,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - auth-services
-
+      - backend-services
   info_server:
     build:
       context: .
@@ -26,14 +25,16 @@ services:
       - auth_server
     volumes:
       - ./info_server:/info_server
-    # ports:
-    #   - "8080:8000"
+    ports:
+      - "8111:8000"
     networks:
       - backend-services
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.info_server.rule=PathPrefix(`/info`)"
-      - "traefik.http.services.info_server.loadbalancer.server.port=8000" 
+      - "traefik.http.services.info_server.loadbalancer.server.port=8000"
+      - "traefik.http.routers.info_server.middlewares=info-stripprefix"
+      - "traefik.http.middlewares.info-stripprefix.stripprefix.prefixes=/info"
 
   auth_server:
     build:
@@ -45,34 +46,28 @@ services:
         condition: service_healthy
     volumes:
       - ./auth_server:/auth_server
-    # ports:
-    #   - "8081:8000"
+    ports:
+      - "8222:8000"
     networks:
-      - auth-services
       - backend-services
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.auth_server.rule=PathPrefix(`/auth`)"
-      - "traefik.http.services.auth_server.loadbalancer.server.port=8000" 
+      - "traefik.http.services.auth_server.loadbalancer.server.port=8000"
+      - "traefik.http.routers.auth_server.middlewares=auth-stripprefix"
+      - "traefik.http.middlewares.auth-stripprefix.stripprefix.prefixes=/auth"
   
   traefik:
     image: "traefik:latest"
     container_name: traefik
-    command:
-    # NOTE: DISABLE IN PROD
-      - "--api.insecure=true"
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
     ports:
       - "80:80"
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "$PWD/traefik.toml:/etc/traefik/traefik.toml"
     networks:
-      - auth-services
       - backend-services
   
 networks:
     backend-services:
-    auth-services:

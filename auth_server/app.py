@@ -1,4 +1,8 @@
-"""Main project file"""
+"""
+Main project module
+This app is responsible for all authorization processes
+and is based on JWT on cookie with access and refresh tokens
+"""
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI

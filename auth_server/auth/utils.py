@@ -36,6 +36,15 @@ def decode_jwt(
     token: str | bytes,
     public_key: str = settings.public_key_path.read_text(),
     algorithm: str = settings.algorithm,
-):
+) -> dict:
     decoded = jwt.decode(token, public_key, algorithms=[algorithm])
     return decoded
+
+
+def encode_refresh_jwt(
+    payload: dict,
+    private_key: str = settings.private_key_path.read_text(),
+    algorithm: str = settings.algorithm,
+    expire_minutes: int = settings.refresh_token_expire_minutes,
+):
+    return encode_jwt(payload, private_key, algorithm, expire_minutes)

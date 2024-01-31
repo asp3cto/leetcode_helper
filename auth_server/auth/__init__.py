@@ -3,8 +3,13 @@ __all__ = (
     "validate_password",
     "encode_jwt",
     "decode_jwt",
-    "OAuth2PasswordBearerWithCookie",
+    "encode_refresh_jwt",
 )
 
-from .utils import hash_password, validate_password, encode_jwt, decode_jwt
-from .oauth2 import OAuth2PasswordBearerWithCookie
+from .utils import (
+    hash_password,
+    validate_password,
+    encode_jwt,
+    decode_jwt,
+    encode_refresh_jwt,
+)

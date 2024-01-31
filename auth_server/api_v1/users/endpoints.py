@@ -11,7 +11,7 @@ from fastapi import (
     Cookie,
 )
 from fastapi.security import OAuth2PasswordRequestForm
-from jwt import InvalidTokenError
+from jwt import InvalidTokenError, ExpiredSignatureError
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,15 +19,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User
 from core.models import pg_db_helper
 from api_v1.users.schemas import UserIn, UserOut, TokenInfo
-from auth import hash_password, validate_password, encode_jwt, decode_jwt
-from auth import OAuth2PasswordBearerWithCookie
+from auth import (
+    hash_password,
+    validate_password,
+    encode_jwt,
+    decode_jwt,
+    encode_refresh_jwt,
+)
 
 
 router = APIRouter(
     tags=["Users"],
 )
-
-oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/login/")
 
 
 @router.get("/")
@@ -45,11 +48,15 @@ async def register_user(
     user: UserIn,
     session: AsyncSession = Depends(pg_db_helper.get_scoped_session),
     access_token: Annotated[str | None, Cookie()] = None,
+    refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> UserOut:
     # removing access_token cookie
     headers = {}
+    if refresh_token:
+        response.delete_cookie("refresh_token")
     if access_token:
         response.delete_cookie("access_token")
+    if refresh_token or access_token:
         headers = {"set-cookie": response.headers["set-cookie"]}
     # check if user already in db
     statement = select(User).where(User.username == user.username)
@@ -107,7 +114,6 @@ async def validate_auth_user_password(
 async def login_user(
     response: Response,
     user: User = Depends(validate_auth_user_password),
-    access_token: Annotated[str | None, Cookie()] = None,
 ) -> TokenInfo:
     # create token and put it to cookie
     access_token_value = encode_jwt(
@@ -115,44 +121,104 @@ async def login_user(
     )
     response.set_cookie(
         key="access_token",
-        value=f"Bearer {access_token_value}",
+        value=f"{access_token_value}",
         httponly=True,
         samesite="lax",
     )
-    return TokenInfo(access_token=access_token_value, token_type="Bearer")
+
+    refresh_token_value = encode_refresh_jwt(
+        payload={"sub": user.id},
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=f"{refresh_token_value}",
+        httponly=True,
+        samesite="lax",
+    )
+
+    return TokenInfo(
+        access_token=access_token_value,
+        refresh_token=refresh_token_value,
+        token_type="Bearer",
+    )
 
 
 @router.post("/logout/")
 async def logout_user(
     response: Response,
     access_token: Annotated[str | None, Cookie()] = None,
+    refresh_token: Annotated[str | None, Cookie()] = None,
 ):
     if not access_token:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="User isnt logged in"
         )
     response.delete_cookie("access_token")
+    if refresh_token:
+        response.delete_cookie("refresh_token")
     return {"detail": "Logged out"}
 
 
-def get_current_token_payload(
-    token: str = Depends(oauth2_scheme),
+def validate_tokens(
+    response: Response,
+    access_token: Annotated[str | None, Cookie()] = None,
+    refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> dict:
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="user is not logged in",
+        )
+    refresh_payload = {}
     try:
-        payload = decode_jwt(
-            token=token,
+        refresh_payload = decode_jwt(
+            token=refresh_token,
         )
     except InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             # NOTE: REMOVE EXCEPTION IN PROD
-            detail=f"invalid token error: {e}",
+            detail=f"invalid refresh token error: {e}",
+        )
+    # if we dont need to create new access_token, use old one as new :)
+    new_access_token = access_token
+    # if access_token is expired, generate new one
+    try:
+        decode_jwt(
+            token=access_token,
+        )
+    except ExpiredSignatureError as e:
+        new_access_token = encode_jwt(payload={"sub": refresh_payload["sub"]})
+
+    # return new access token to set to cookie
+    response.set_cookie("access_token", new_access_token)
+    return refresh_payload
+
+
+def get_current_refresh_token_payload(
+    refresh_token: Annotated[str | None, Cookie()] = None,
+) -> dict:
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="user is not logged in",
+        )
+    payload = {}
+    try:
+        payload = decode_jwt(
+            token=refresh_token,
+        )
+    except InvalidTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            # NOTE: REMOVE EXCEPTION IN PROD
+            detail=f"invalid refresh token error: {e}",
         )
     return payload
 
 
 async def get_current_auth_user(
-    payload: dict = Depends(get_current_token_payload),
+    payload: dict = Depends(get_current_refresh_token_payload),
     session: AsyncSession = Depends(pg_db_helper.get_scoped_session),
 ) -> User:
     id: int | None = payload.get("sub")
@@ -178,27 +244,13 @@ async def get_current_auth_user(
     )
 
 
-@router.get("/me/")
-def auth_user_check_self_info(
-    payload: dict = Depends(get_current_token_payload),
-    user: User = Depends(get_current_auth_user),
-):
-    iat = payload.get("iat")
-    return {
-        "username": user.username,
-        "email": user.email,
-        "logged_in_at": iat,
-    }
-
-
 @router.get("/validate/")
 def validate_token(
-    payload: dict = Depends(get_current_token_payload),
+    refresh_payload=Depends(validate_tokens),
     user: User = Depends(get_current_auth_user),
 ):
-    iat = payload.get("iat")
     return {
         "username": user.username,
         "email": user.email,
-        "logged_in_at": iat,
+        "exp": refresh_payload["exp"],
     }

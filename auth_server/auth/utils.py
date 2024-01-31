@@ -20,9 +20,9 @@ def validate_password(password: str, hashed_password: bytes) -> bool:
 
 def encode_jwt(
     payload: dict,
-    private_key: str = settings.jwt.private_key_path.read_text(),
-    algorithm: str = settings.jwt.algorithm,
-    expire_minutes: int = settings.jwt.access_token_expire_minutes,
+    private_key: str = settings.private_key_path.read_text(),
+    algorithm: str = settings.algorithm,
+    expire_minutes: int = settings.access_token_expire_minutes,
 ) -> str:
     to_encode = payload.copy()
     now = datetime.utcnow()
@@ -34,8 +34,8 @@ def encode_jwt(
 
 def decode_jwt(
     token: str | bytes,
-    public_key: str = settings.jwt.public_key_path.read_text(),
-    algorithm: str = settings.jwt.algorithm,
+    public_key: str = settings.public_key_path.read_text(),
+    algorithm: str = settings.algorithm,
 ):
     decoded = jwt.decode(token, public_key, algorithms=[algorithm])
     return decoded

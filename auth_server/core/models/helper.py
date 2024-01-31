@@ -42,4 +42,4 @@ class PgDatabaseHelper:
         await session.close()
 
 
-pg_db_helper = PgDatabaseHelper(url=settings.pg.db_url, echo=settings.pg.db_echo)
+pg_db_helper = PgDatabaseHelper(url=settings.db_url, echo=settings.db_echo)

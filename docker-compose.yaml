@@ -6,9 +6,9 @@ services:
     environment:
       POSTGRES_DB: "auth"
       POSTGRES_USER: "auth"
-      POSTGRES_PASSWORD: "qwerty"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
     ports:
-      - "5555:5432"
+      - "${POSTGRES_PORT}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d auth -U auth"]
       interval: 10s
@@ -25,8 +25,8 @@ services:
       - auth_server
     volumes:
       - ./info_server:/info_server
-    ports:
-      - "8111:8000"
+    # ports:
+    #   - "8111:8000"
     networks:
       - backend-services
     labels:
@@ -41,13 +41,17 @@ services:
       context: .
       dockerfile: Dockerfile.auth
     container_name: auth_server
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env.auth
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./auth_server:/auth_server
-    ports:
-      - "8222:8000"
+    # ports:
+    #   - "8222:8000"
     networks:
       - backend-services
     labels:

@@ -162,3 +162,5 @@ userdata.yaml
 logfile
 *.pem
 venv*
+.env*
+traefik.toml

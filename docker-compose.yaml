@@ -19,8 +19,12 @@ services:
   mongo:
     image: mongo:7.0
     container_name: mongo
+    environment:
+      MONGO_INITDB_DATABASE: "problems"
+      MONGO_INITDB_ROOT_USERNAME: "problems"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_PASSWORD}"
     ports:
-      - "27017:27017"
+      - "${MONGODB_PORT}:27017"
     networks:
       - backend-services
   

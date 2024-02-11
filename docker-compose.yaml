@@ -16,6 +16,14 @@ services:
       retries: 5
     networks:
       - backend-services
+  mongo:
+    image: mongo:7.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - backend-services
+  
   info_server:
     build:
       context: .

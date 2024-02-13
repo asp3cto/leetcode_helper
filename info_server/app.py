@@ -5,9 +5,9 @@ from typing import Annotated, Any, Callable, Optional
 from fastapi import Cookie, FastAPI, Response, HTTPException, status, Request, Depends
 
 from core import settings
-#work with mongo
-from pymongo import MongoClient
-import csv
+
+# temp
+import core.models.helper as helper
 
 app = FastAPI(openapi_prefix="/info")
 
@@ -46,22 +46,9 @@ async def home(
 ):
     return {"detail": "only for logged in users hehe"}
 
-mongoClient = MongoClient(host="mongo", port=27017, username="problems", password="sosibibu")
-@app.get("/mongotable")
-async def csv_to_mongo():
-#create mongodatabase
-    
-    db = mongoClient['test_problems_data']
-    collectionw = db['test_problems']
-    header = ['Question ID','Question Title','Question Slug','Question Text',
-              'Topic Tagged text','Difficulty Level','Success Rate','total submission',
-              'total accepted','Likes','Dislikes','Hints',
-              'Similar Questions ID','Similar Questions Text']
-    csvFile = open('problems.csv', 'r')
-    reader = csv.DictReader(csvFile)
-    for each in reader:
-        row = {}
-        for field in header:
-            row[field] = each[field]
-        collectionw.insert_one(row)
-    return {"detail": "success&7"}
+
+# for test csv, temp
+@app.get("/mongocsv")
+async def get_mongot():
+    helper.csv_to_mongo("problems.csv")
+    return {"detail": "gj"}

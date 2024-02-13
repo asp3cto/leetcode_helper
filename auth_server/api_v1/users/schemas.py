@@ -17,8 +17,7 @@ class UserIn(UserBase):
     password: Annotated[str, MinLen(6)]
 
 
-class UserOut(UserBase):
-    ...
+class UserOut(UserBase): ...
 
 
 class TokenInfo(BaseModel):

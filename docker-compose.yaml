@@ -37,6 +37,7 @@ services:
       - auth_server
     volumes:
       - ./info_server:/info_server
+      - ./problems_db_example/problems.csv:/info_server/problems.csv
     # ports:
     #   - "8111:8000"
     networks:

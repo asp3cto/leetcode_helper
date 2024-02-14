@@ -1,4 +1,4 @@
-from core.database import collection
+from core.database import problems_collection
 import csv
 
 
@@ -10,4 +10,4 @@ def csv_to_mongo(filename):
             for field in reader.fieldnames:
                 if each[field] != '':
                     row[field] = each[field]
-            collection.insert_one(row)
+            problems_collection.insert_one(row)

@@ -7,4 +7,4 @@ mongoClient = mo.AsyncIOMotorClient(
 )
 
 db = mongoClient.problems_data
-collection = db["problems"]
+problems_collection = db["problems"]

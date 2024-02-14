@@ -8,5 +8,6 @@ def csv_to_mongo(filename):
         for each in reader:
             row = {}
             for field in reader.fieldnames:
-                row[field] = each[field]
+                if each[field] != '':
+                    row[field] = each[field]
             collection.insert_one(row)

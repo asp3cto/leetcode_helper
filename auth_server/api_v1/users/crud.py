@@ -1,4 +1,5 @@
 """Module with CRUD for users table in Postgres"""
+
 from sqlalchemy import select
 from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession

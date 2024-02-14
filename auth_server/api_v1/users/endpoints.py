@@ -1,4 +1,6 @@
-"""Endpoints in users router"""
+"""
+Endpoints in users router
+"""
 
 from typing import Annotated
 
@@ -19,12 +21,11 @@ from api_v1.users.schemas import UserIn, UserOut, TokenInfo
 from auth import (
     hash_password,
     encode_jwt,
-    encode_refresh_jwt,
 )
 from api_v1.users.crud import check_user_by_username, create_user
 from api_v1.users.dependencies import (
     validate_auth_user_password,
-    validate_tokens,
+    validate_access_token,
     get_current_auth_user,
 )
 
@@ -49,15 +50,11 @@ async def register_user(
     user: UserIn,
     session: AsyncSession = Depends(pg_db_helper.scoped_session_dependency),
     access_token: Annotated[str | None, Cookie()] = None,
-    refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> UserOut:
     # removing access_token cookie
     headers = {}
-    if refresh_token:
-        response.delete_cookie("refresh_token")
     if access_token:
         response.delete_cookie("access_token")
-    if refresh_token or access_token:
         headers = {"set-cookie": response.headers["set-cookie"]}
     # check if user already in db
     if await check_user_by_username(session=session, username=user.username):
@@ -86,18 +83,8 @@ async def login_user(
         httponly=True,
         samesite="lax",
     )
-    refresh_token_value = encode_refresh_jwt(
-        payload={"sub": user.id},
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=f"{refresh_token_value}",
-        httponly=True,
-        samesite="lax",
-    )
     return TokenInfo(
         access_token=access_token_value,
-        refresh_token=refresh_token_value,
         token_type="Bearer",
     )
 
@@ -106,25 +93,22 @@ async def login_user(
 async def logout_user(
     response: Response,
     access_token: Annotated[str | None, Cookie()] = None,
-    refresh_token: Annotated[str | None, Cookie()] = None,
 ):
     if not access_token:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="User isnt logged in"
         )
     response.delete_cookie("access_token")
-    if refresh_token:
-        response.delete_cookie("refresh_token")
     return {"detail": "Logged out"}
 
 
 @router.get("/validate/")
 async def validate_token(
-    refresh_payload=Depends(validate_tokens),
+    token_payload=Depends(validate_access_token),
     user: User = Depends(get_current_auth_user),
 ):
     return {
         "username": user.username,
         "email": user.email,
-        "exp": refresh_payload["exp"],
+        "exp": token_payload["exp"],
     }

@@ -3,7 +3,6 @@ __all__ = (
     "validate_password",
     "encode_jwt",
     "decode_jwt",
-    "encode_refresh_jwt",
 )
 
 from .utils import (
@@ -11,5 +10,4 @@ from .utils import (
     validate_password,
     encode_jwt,
     decode_jwt,
-    encode_refresh_jwt,
 )

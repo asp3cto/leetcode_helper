@@ -1,15 +1,17 @@
-"Dependencies for endpoints.py"
+"""
+Dependencies for endpoints.py
+"""
+
 from typing import Annotated
 
 from fastapi import Cookie, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from jwt import ExpiredSignatureError, InvalidTokenError
+from jwt import InvalidTokenError
 
 
 from core.models import pg_db_helper, User
-from auth.utils import decode_jwt, encode_jwt, validate_password
+from auth.utils import decode_jwt, validate_password
 from api_v1.users.crud import get_user_by_username, get_user_by_id
 
 
@@ -46,46 +48,32 @@ async def validate_auth_user_password(
     return user_from_db
 
 
-async def validate_tokens(
-    response: Response,
+async def validate_access_token(
     access_token: Annotated[str | None, Cookie()] = None,
-    refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> dict:
-    if not refresh_token:
+    if not access_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="user is not logged in",
         )
-    refresh_payload = {}
+    token_payload = {}
     try:
-        refresh_payload = decode_jwt(
-            token=refresh_token,
+        token_payload = decode_jwt(
+            token=access_token,
         )
     except InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             # NOTE: REMOVE EXCEPTION IN PROD
-            detail=f"invalid refresh token error: {e}",
+            detail=f"invalid access token error: {e}",
         )
-    # if we dont need to create new access_token, use old one as new :)
-    new_access_token = access_token
-    # if access_token is expired, generate new one
-    try:
-        decode_jwt(
-            token=access_token,
-        )
-    except ExpiredSignatureError as e:
-        new_access_token = encode_jwt(payload={"sub": refresh_payload["sub"]})
-
-    # return new access token to set to cookie
-    response.set_cookie("access_token", new_access_token)
-    return refresh_payload
+    return token_payload
 
 
-async def get_current_refresh_token_payload(
-    refresh_token: Annotated[str | None, Cookie()] = None,
+async def get_current_access_token_payload(
+    access_token: Annotated[str | None, Cookie()] = None,
 ) -> dict:
-    if not refresh_token:
+    if not access_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="user is not logged in",
@@ -93,19 +81,19 @@ async def get_current_refresh_token_payload(
     payload = {}
     try:
         payload = decode_jwt(
-            token=refresh_token,
+            token=access_token,
         )
     except InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             # NOTE: REMOVE EXCEPTION IN PROD
-            detail=f"invalid refresh token error: {e}",
+            detail=f"invalid access token error: {e}",
         )
     return payload
 
 
 async def get_current_auth_user(
-    payload: dict = Depends(get_current_refresh_token_payload),
+    payload: dict = Depends(get_current_access_token_payload),
     session: AsyncSession = Depends(pg_db_helper.get_scoped_session),
 ) -> User:
     id: int | None = payload.get("sub")

@@ -50,5 +50,5 @@ async def home(
 # for test csv, temp
 @app.get("/mongocsv")
 async def get_mongot():
-    helper.csv_to_mongo("problems.csv")
+    helper.csv_to_mongo("./data/problems.csv")
     return {"detail": "gj"}

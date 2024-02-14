@@ -17,7 +17,7 @@ from api_v1.users.crud import get_user_by_username, get_user_by_id
 
 async def validate_auth_user_password(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    session: AsyncSession = Depends(pg_db_helper.get_scoped_session),
+    session: AsyncSession = Depends(pg_db_helper.scoped_session_dependency),
 ):
     """
     Helper Function for login route to check a user by password
@@ -94,7 +94,7 @@ async def get_current_access_token_payload(
 
 async def get_current_auth_user(
     payload: dict = Depends(get_current_access_token_payload),
-    session: AsyncSession = Depends(pg_db_helper.get_scoped_session),
+    session: AsyncSession = Depends(pg_db_helper.scoped_session_dependency),
 ) -> User:
     id: int | None = payload.get("sub")
 

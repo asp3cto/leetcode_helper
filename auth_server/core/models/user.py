@@ -1,7 +1,5 @@
 """Module with User model for db"""
 
-from typing import Optional
-
 from sqlalchemy import String, LargeBinary, sql
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -12,6 +10,6 @@ class User(Base):
     """User model for db"""
 
     username: Mapped[str] = mapped_column(String(30), unique=True)
-    email: Mapped[Optional[str]]
+    email: Mapped[str | None]
     is_active: Mapped[bool] = mapped_column(server_default=sql.true())
     hashed_password: Mapped[bytes] = mapped_column(LargeBinary())

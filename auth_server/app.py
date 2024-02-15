@@ -1,7 +1,7 @@
 """
 Main project module
 This app is responsible for all authorization processes
-and is based on JWT on cookie with access and refresh tokens
+and is based on JWT on cookie with access token
 """
 
 from contextlib import asynccontextmanager

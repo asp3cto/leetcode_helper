@@ -1,9 +1,9 @@
 """Module with database helper class"""
 
 from asyncio import current_task
+from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
-    AsyncSession,
     create_async_engine,
     async_sessionmaker,
     async_scoped_session,
@@ -31,12 +31,12 @@ class PgDatabaseHelper:
         )
         return session
 
-    async def session_dependency(self) -> AsyncSession:
+    async def session_dependency(self) -> AsyncGenerator:
         async with self.session_factory() as session:
             yield session
             await session.close()
 
-    async def scoped_session_dependency(self) -> AsyncSession:
+    async def scoped_session_dependency(self) -> AsyncGenerator:
         session = self.get_scoped_session()
         yield session
         await session.close()

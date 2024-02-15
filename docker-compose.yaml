@@ -16,6 +16,19 @@ services:
       retries: 5
     networks:
       - backend-services
+    
+  postgres_test:
+    image: postgres:14.5
+    container_name: postgres_test
+    environment:
+      POSTGRES_DB: "auth"
+      POSTGRES_USER: "auth"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    ports:
+      - 9191:5432
+    networks:
+      - backend-services
+
   info_server:
     build:
       context: .

@@ -1,9 +1,9 @@
 # temp_file for create collection "problems" in mongo
 import motor.motor_asyncio as mo
-
+from core.config import settings
 # ToDO: change pass argument
 mongoClient = mo.AsyncIOMotorClient(
-    host="mongo", port=27017, username="problems", password="sosibibu"
+    settings.db_url
 )
 
 db = mongoClient.problems_data

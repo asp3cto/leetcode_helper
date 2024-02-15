@@ -3,11 +3,12 @@ import requests
 from functools import wraps
 from typing import Annotated, Any, Callable, Optional
 from fastapi import Cookie, FastAPI, Response, HTTPException, status, Request, Depends
-
+from contextlib import asynccontextmanager
 from core import settings
 
 # temp
 import core.models.helper as helper
+import motor.motor_asyncio as mo
 
 app = FastAPI(openapi_prefix="/info")
 
@@ -52,3 +53,20 @@ async def home(
 async def get_mongot():
     helper.csv_to_mongo("./data/problems.csv")
     return {"detail": "gj"}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """On startup function to create tables
+
+    Args:
+        app (FastAPI): main app
+    """
+    mongoClient = mo.AsyncIOMotorClient(
+        host="mongo", port=27017, username="problems", password="sosibibu"
+    )
+    database = mongoClient["problems_data"]
+    problems_collection = database["problems"]
+    yield
+    
+    client.close()

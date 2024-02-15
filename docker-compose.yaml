@@ -16,6 +16,33 @@ services:
       retries: 5
     networks:
       - backend-services
+
+  mongo:
+    image: mongo:7.0
+    container_name: mongo
+    environment:
+      MONGO_INITDB_DATABASE: "problems"
+      MONGO_INITDB_ROOT_USERNAME: "problems"
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+    ports:
+      - "${MONGODB_PORT}:27017"
+    networks:
+      - backend-services
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "28081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "problems"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://problems:${MONGODB_PASSWORD}@mongo:27017/ 
+    depends_on:
+      - mongo
+    networks:
+    - backend-services
     
   postgres_test:
     image: postgres:14.5
@@ -34,6 +61,8 @@ services:
       context: .
       dockerfile: Dockerfile.info
     container_name: info_server
+    environment:
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
     depends_on:
       - auth_server
     volumes:

@@ -1,12 +1,28 @@
-import requests
+"""
+Info server
+"""
 
+import requests
 from functools import wraps
 from typing import Annotated, Any, Callable
+
 from fastapi import Cookie, FastAPI, Response, HTTPException, status
 
-from core import settings
+from core import settings, helper
 
-app = FastAPI(openapi_prefix="/info")
+
+async def lifespan(app: FastAPI):
+    """On startup function to create tables
+
+    Args:
+        app (FastAPI): main app
+    """
+    mongoClient = helper.create_problems_collection()
+    yield
+    mongoClient.close()
+
+
+app = FastAPI(lifespan=lifespan, openapi_prefix="/info")
 
 
 def auth_required(func: Callable) -> Callable:

@@ -9,7 +9,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from jwt import InvalidTokenError
 
-
 from core.models import pg_db_helper, User
 from auth.utils import decode_jwt, validate_password
 from api_v1.users.crud import get_user_by_username, get_user_by_id

@@ -4,7 +4,7 @@ Dependencies for endpoints.py
 
 from typing import Annotated
 
-from fastapi import Cookie, Depends, HTTPException, Response, status
+from fastapi import Cookie, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from jwt import InvalidTokenError

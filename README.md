@@ -7,7 +7,7 @@ FastAPI server for organizing leetcode progress
 # start app
 docker compose up --build
 ```
-If error occurs when binding port 80 for Traefik, it means that Apache is already launched on it:
+# Testing
 ```bash
-sudo service apache2 stop
+docker compose exec auth_server pytest tests/ -v -s
 ```

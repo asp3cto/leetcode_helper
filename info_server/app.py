@@ -8,8 +8,8 @@ from typing import Annotated, Any, Callable
 
 from fastapi import Cookie, FastAPI, Response, HTTPException, status
 
-from core import settings, helper
-
+from core import settings
+from core.models.helper import mongodb_helper
 
 async def lifespan(app: FastAPI):
     """On startup function to create tables
@@ -17,7 +17,8 @@ async def lifespan(app: FastAPI):
     Args:
         app (FastAPI): main app
     """
-    mongoClient = helper.create_problems_collection()
+    mongoClient = mongodb_helper.get_client()
+    mongodb_helper.fill_problems_collection()
     yield
     mongoClient.close()
 

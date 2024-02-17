@@ -19,18 +19,6 @@ class MongoDBHelper:
 
     def get_client(self) -> AgnosticClient:
         return self._mongoClient
-    
-    @staticmethod
-    def _row_parse(field_name: str, record: dict) -> dict:
-        if field_name == "Question ID":
-            return record[field_name]
-        valid_key = field_name.lower().replace(" ", "_")
-        if record[field_name]:
-            if valid_key == "similar_questions_id":
-               return int(record[field_name].split(","))
-            if valid_key == "similar_questions_text":
-                return record[field_name].split(",")
-            return record[field_name]
 
     @staticmethod
     def _parse_csv_data() -> list[dict]:
@@ -45,7 +33,21 @@ class MongoDBHelper:
             for record in reader:
                 row = {}
                 for field_name in reader.fieldnames:
-                    row = MongoDBHelper._row_parse(field_name, record)
+                    if field_name == "Question ID":
+                        row["id"] = record[field_name]
+                        continue
+                    valid_key = field_name.lower().replace(" ", "_")
+                    if record[field_name]:
+                        if (
+                            valid_key == "similar_questions_id"
+                            or valid_key == "similar_questions_text"
+                        ):
+                            row[valid_key] = [
+                                int(elem) if elem.isdigit() else elem
+                                for elem in record[field_name].split(",")
+                            ]
+                        else:
+                            row[valid_key] = record[field_name]
                 problem_list.append(row)
         return problem_list
 

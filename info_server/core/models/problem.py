@@ -5,8 +5,8 @@ from beanie import Document
 
 
 class Problem(Document):
-    """Class-document for mongo collection "problems"
-    """
+    """Class-document for mongo collection "problems" """
+
     id: int
     question_title: str
     question_slug: str
@@ -23,7 +23,7 @@ class Problem(Document):
     similar_questions_text: list[str] | None = None
 
     class Settings:
-        """Class for configure mongo collection 
-        """
+        """Class for configure mongo collection"""
+
         name = "problems"
         keep_nulls = False

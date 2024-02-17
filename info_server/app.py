@@ -2,7 +2,6 @@
 Info server
 """
 
-
 import requests
 from functools import wraps
 from typing import Annotated, Any, Callable
@@ -10,10 +9,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import Cookie, FastAPI, Response, HTTPException, status
 from beanie import init_beanie
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from core import settings
-from core.models.helper import mongodb_helper
+from core.models.helper import (
+    fill_problems_collection,
+    check_problems_collection_is_empty,
+)
 from core.models.problem import Problem
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,13 +26,12 @@ async def lifespan(app: FastAPI):
     Args:
         app (FastAPI): main app
     """
-    mongoClient = mongodb_helper.get_client()
-    try:
-        await init_beanie(database=mongoClient.mongo, document_models=[Problem])
-        await mongodb_helper.fill_problems_collection()
-        yield
-    finally:    
-        mongoClient.close()
+    mongo_client = AsyncIOMotorClient(settings.db_url)
+    await init_beanie(database=mongo_client.mongo, document_models=[Problem])
+    if await check_problems_collection_is_empty():
+        await fill_problems_collection()
+    yield
+    mongo_client.close()
 
 
 app = FastAPI(lifespan=lifespan, openapi_prefix="/info")

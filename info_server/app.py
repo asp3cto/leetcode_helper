@@ -2,6 +2,7 @@
 Info server
 """
 
+from beanie import init_beanie
 import requests
 from functools import wraps
 from typing import Annotated, Any, Callable
@@ -10,6 +11,8 @@ from fastapi import Cookie, FastAPI, Response, HTTPException, status
 
 from core import settings
 from core.models.helper import mongodb_helper
+from core.models.problem import Problem
+
 
 async def lifespan(app: FastAPI):
     """On startup function to create tables
@@ -18,7 +21,8 @@ async def lifespan(app: FastAPI):
         app (FastAPI): main app
     """
     mongoClient = mongodb_helper.get_client()
-    mongodb_helper.fill_problems_collection()
+    await init_beanie(database=mongoClient.mongo, document_models=[Problem])
+    await mongodb_helper.fill_problems_collection()
     yield
     mongoClient.close()
 

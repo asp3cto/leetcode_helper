@@ -2,12 +2,12 @@
 Info server
 """
 
-from beanie import init_beanie
 import requests
 from functools import wraps
 from typing import Annotated, Any, Callable
 
 from fastapi import Cookie, FastAPI, Response, HTTPException, status
+from beanie import init_beanie
 
 from core import settings
 from core.models.helper import mongodb_helper

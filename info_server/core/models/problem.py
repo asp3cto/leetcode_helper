@@ -11,7 +11,7 @@ class Problem(Document):
     question_title: str
     question_slug: str
     question_text: str | None = None
-    topic_tagged_text: str | None = None
+    topic_tagged_text: list[str] | None = None
     difficulty_level: str | None = None
     success_rate: float | None = None
     total_submission: int | None = None

@@ -5,21 +5,33 @@ Info server
 import requests
 from functools import wraps
 from typing import Annotated, Any, Callable
+from contextlib import asynccontextmanager
 
 from fastapi import Cookie, FastAPI, Response, HTTPException, status
+from beanie import init_beanie
+from motor.motor_asyncio import AsyncIOMotorClient
 
-from core import settings, helper
+from core import settings
+from core.models.helper import (
+    fill_problems_collection,
+    check_problems_collection_is_empty,
+)
+from core.models.problem import Problem
 
 
+@asynccontextmanager
 async def lifespan(app: FastAPI):
     """On startup function to create tables
 
     Args:
         app (FastAPI): main app
     """
-    mongoClient = helper.create_problems_collection()
+    mongo_client = AsyncIOMotorClient(settings.db_url)
+    await init_beanie(database=mongo_client.mongo, document_models=[Problem])
+    if await check_problems_collection_is_empty():
+        await fill_problems_collection()
     yield
-    mongoClient.close()
+    mongo_client.close()
 
 
 app = FastAPI(lifespan=lifespan, openapi_prefix="/info")

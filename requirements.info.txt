@@ -7,6 +7,7 @@ click==8.1.7
 dnspython==2.5.0
 exceptiongroup==1.2.0
 fastapi==0.109.0
+fastapi-pagination==0.12.15
 h11==0.14.0
 httptools==0.6.1
 idna==3.6

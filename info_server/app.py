@@ -8,15 +8,13 @@ from typing import Annotated, Any, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import Cookie, FastAPI, Response, HTTPException, status
-from beanie import init_beanie
+from fastapi_pagination import add_pagination
 from motor.motor_asyncio import AsyncIOMotorClient
+from beanie import init_beanie
 
 from core import settings
-from core.models.helper import (
-    fill_problems_collection,
-    check_problems_collection_is_empty,
-)
-from core.models.problem import Problem
+from core.models import helper, Problem
+from api_v1.problems import problems_router
 
 
 @asynccontextmanager
@@ -28,13 +26,15 @@ async def lifespan(app: FastAPI):
     """
     mongo_client = AsyncIOMotorClient(settings.db_url)
     await init_beanie(database=mongo_client.mongo, document_models=[Problem])
-    if await check_problems_collection_is_empty():
-        await fill_problems_collection()
+    if await helper.check_problems_collection_is_empty():
+        await helper.fill_problems_collection()
     yield
     mongo_client.close()
 
 
 app = FastAPI(lifespan=lifespan, openapi_prefix="/info")
+app.include_router(problems_router, prefix="/problems")
+add_pagination(app)
 
 
 def auth_required(func: Callable) -> Callable:

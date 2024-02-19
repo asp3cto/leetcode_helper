@@ -5,7 +5,9 @@ and is based on JWT on cookie with access token
 """
 
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from core.models import Base, pg_db_helper
 from api_v1.users import users_router
@@ -25,3 +27,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan, openapi_prefix="/auth")
 app.include_router(users_router, prefix="")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

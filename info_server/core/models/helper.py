@@ -43,7 +43,7 @@ def parse_row_from_csv(fieldnames: Sequence[str], record: dict) -> dict:
                 result[valid_key] = [
                     int(elem) for elem in record[field_name].split(",")
                 ]
-            elif valid_key == "similar_questions_text":
+            elif valid_key in ("similar_questions_text", "topic_tagged_text"):
                 result[valid_key] = record[field_name].split(",")
             else:
                 result[valid_key] = record[field_name]

@@ -11,3 +11,8 @@ docker compose up --build
 ```bash
 docker compose exec auth_server pytest tests/ -v -s
 ```
+# Linting
+```bash
+pip install ruff
+ruff check .
+```

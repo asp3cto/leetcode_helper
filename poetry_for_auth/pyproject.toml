@@ -19,6 +19,9 @@ fastapi-pagination = "^0.12.16"
 exceptiongroup = "^1.2.0"
 uvicorn = {extras = ["standard"], version = "^0.27.1"}
 python-multipart = "^0.0.9"
+pytest = {extras = ["asyncio"], version = "^8.0.1"}
+httpx = "^0.26.0"
+pytest-asyncio = "^0.23.5"
 
 
 [build-system]

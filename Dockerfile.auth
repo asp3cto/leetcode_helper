@@ -5,7 +5,7 @@ RUN mkdir auth_server
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-COPY poetry_for_auth/pyproject.toml poetry_for_auth/poetry.lock ./
+COPY poetry/poetry_for_auth/pyproject.toml poetry/poetry_for_auth/poetry.lock ./
 
 RUN pip install poetry \
     && poetry config virtualenvs.create false \

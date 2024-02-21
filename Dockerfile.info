@@ -5,11 +5,14 @@ RUN mkdir info_server
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-COPY ./requirements.info.txt ./
+COPY poetry/poetry_for_info/pyproject.toml poetry/poetry_for_info/poetry.lock ./
 
-RUN pip3 install --no-cache-dir -r ./requirements.info.txt;
+RUN pip install poetry \
+    && poetry config virtualenvs.create false \
+    && poetry install --no-root --no-dev
 
 COPY ./info_server ./info_server
+RUN pip install uvicorn
 
 WORKDIR /info_server
 

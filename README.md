@@ -11,14 +11,21 @@ docker compose up --build
 ```bash
 docker compose exec auth_server pytest tests/ -v -s
 ```
+
 # Dependencies
-the project uses dependencies using the **poetry** tool
+Project uses dependencies via the **poetry** tool
 dependencies for auth_server in auth_server/pyproject.toml
 dependencies for info_server in info_server/pyproject.toml
 
 ```bash
-#add dependenc
+# add dependency
 poetry add package
-#delete dependenc
+# delete dependency
 poetry remove package
+```
+
+# Linting
+```bash
+pip install ruff
+ruff check .
 ```

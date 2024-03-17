@@ -13,7 +13,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
 from core import settings
-from core.models import helper, Problem
+from core.models import helper, Problem, UserProblem, Solve
 from api_v1.problems import problems_router
 
 
@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
         app (FastAPI): main app
     """
     mongo_client = AsyncIOMotorClient(settings.db_url)
-    await init_beanie(database=mongo_client.mongo, document_models=[Problem])
+    await init_beanie(database=mongo_client.mongo, document_models=[Problem, UserProblem, Solve])
     if await helper.check_problems_collection_is_empty():
         await helper.fill_problems_collection()
     yield

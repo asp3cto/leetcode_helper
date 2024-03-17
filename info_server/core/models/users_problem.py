@@ -1,6 +1,6 @@
 from beanie import Document
 
-class UsersProblem(Document):
+class UserProblem(Document):
     """Class-document for mongo collection "users_problems"
     """
     id: int

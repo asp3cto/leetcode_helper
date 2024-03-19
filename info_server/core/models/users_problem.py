@@ -3,10 +3,10 @@ from beanie import Document
 class UserProblem(Document):
     """Class-document for mongo collection "users_problems"
     """
-    id: int
+    user_id: int
     problem_id: int
     status: str
-    solves: list[int] | None
+    solves: list[str] | None
 
     class Settings:
         """Class for configure mongo collection"""

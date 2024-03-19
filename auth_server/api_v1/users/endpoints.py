@@ -108,6 +108,7 @@ async def validate_token(
     user: User = Depends(get_current_auth_user),
 ):
     return {
+        "user_id": user.id,
         "username": user.username,
         "email": user.email,
         "exp": token_payload["exp"],

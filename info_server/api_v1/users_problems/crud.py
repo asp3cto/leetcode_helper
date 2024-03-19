@@ -1,4 +1,4 @@
-from schemas import ProblemStatus
+from .schemas import ProblemStatus
 from core.models import UserProblem
 from beanie.exceptions import DocumentNotFound
 
@@ -10,6 +10,7 @@ async def create_user_problem(
 ) -> None:
     solves = [solve]
     UserProblem(user_id=user_id, problem_id=problem_id, status=status, solves=solves).insert()
+
 
 async def add_solve_to_problem(
        user_id: int,

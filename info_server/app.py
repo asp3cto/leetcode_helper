@@ -15,6 +15,7 @@ from beanie import init_beanie
 from core import settings
 from core.models import helper, Problem, UserProblem
 from api_v1.problems import problems_router
+from api_v1.users_problems import user_problems_router
 
 
 @asynccontextmanager
@@ -34,6 +35,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan, openapi_prefix="/info")
 app.include_router(problems_router, prefix="/problems")
+app.include_router(user_problems_router, prefix="/user-problems")
 add_pagination(app)
 
 

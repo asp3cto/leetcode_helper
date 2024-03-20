@@ -9,7 +9,8 @@ async def create_user_problem(
         solve: str | None
 ) -> None:
     solves = [solve]
-    UserProblem(user_id=user_id, problem_id=problem_id, status=status, solves=solves).insert()
+    user_problem =  UserProblem(user_id=user_id, problem_id=problem_id, status=status, solves=solves)
+    await user_problem.insert()
 
 
 async def add_solve_to_problem(
@@ -18,9 +19,10 @@ async def add_solve_to_problem(
        new_solve: str 
 )->None:
     user_solves = await UserProblem.find_one(UserProblem.user_id==user_id,UserProblem.problem_id==problem_id)
+    print(user_solves)
     user_solves.solves.append(new_solve)
     try:
-        user_solves.replace()
+        await user_solves.replace()
     except (ValueError, DocumentNotFound):
         print("Can't replace a non existing document") 
     
@@ -28,12 +30,12 @@ async def add_solve_to_problem(
 async def get_user_problems(
         user_id: int,
 ) -> list[UserProblem] | None:
-    return await UserProblem.find_all(UserProblem.user_id==user_id).to_list()
+    user_problems = await UserProblem.find_many(UserProblem.user_id==user_id).to_list()
+    return user_problems
 
 
-async def update_user_problems():
-    pass
-
-
-async def edit_solve_problem():
-    pass
+async def delete_problem(
+        user_id: int,
+        problem_id: int
+) -> None:
+    await UserProblem.find_one(UserProblem.user_id==user_id,UserProblem.problem_id==problem_id).delete()

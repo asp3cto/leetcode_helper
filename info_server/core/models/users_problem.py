@@ -6,7 +6,7 @@ class UserProblem(Document):
     user_id: int
     problem_id: int
     status: str
-    solves: list[str] | None
+    solves: list[str] | None = None
 
     class Settings:
         """Class for configure mongo collection"""

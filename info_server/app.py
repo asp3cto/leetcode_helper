@@ -26,7 +26,9 @@ async def lifespan(app: FastAPI):
         app (FastAPI): main app
     """
     mongo_client = AsyncIOMotorClient(settings.db_url)
-    await init_beanie(database=mongo_client.mongo, document_models=[Problem, UserProblem])
+    await init_beanie(
+        database=mongo_client.mongo, document_models=[Problem, UserProblem]
+    )
     if await helper.check_problems_collection_is_empty():
         await helper.fill_problems_collection()
     yield

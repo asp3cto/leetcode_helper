@@ -129,3 +129,13 @@ volumes:
     driver: local
   kibanadata:
     driver: local
+      - "9999:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "$PWD/traefik.toml:/etc/traefik/traefik.toml"
+    networks:
+      - backend-services
+  
+networks:
+    backend-services:

@@ -29,3 +29,13 @@ poetry remove package
 pip install ruff
 ruff check .
 ```
+
+# if elastic-search not working
+Add in file /etc/sysctl.conf:
+```bash
+vm.max_map_count=262144
+```
+and then:
+```bash
+sysctl -w vm.max_map_count=262144
+```
